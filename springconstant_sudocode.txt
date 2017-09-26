@@ -17,3 +17,15 @@ Start_button pressed
 	Zero force and distance variables and reverse motor slowly until force = -.1 lbs - calculate spring constant k and average with the value calculated from the forward motion.
  	Print to LCD "Spring Constant: k_value"
 	Return Servo Motor to Home position.
+
+
+    FUCNTION (Calibration)				//	Calibrate Load Sensor based on spring with known constant
+	Print to LCD "Test in Progress"
+	Move Sero_motor forward until Load_cell detects force
+	Print to LCD "Calculating..."
+	Move forward an additional .05 inches
+	From this point zero the value for spring_force and distance_x
+	Move Servo_motor forward slowly until force = 4 lbs. At that point calculate the value of the spring constant k (using hook's law F=kX). 
+	Zero force and distance variables and reverse motor slowly until force = -.1 lbs - calculate spring constant k and average with the value calculated from the forward motion.
+ 	Print to LCD "Spring Constant: k_value"
+	Return Servo Motor to Home position.
