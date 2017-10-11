@@ -61,7 +61,7 @@ void setup() {
 
 //load cell setup
 scale.set_scale();
-  scale.tare(); //Reset the scale to 0
+scale.tare(); //Reset the scale to 0
 
 // set the start button as an input
     pinMode(buttonPin, INPUT);
@@ -139,8 +139,17 @@ while( measurementCounter > 5) // while the motor is above the spring tube
     }
   else
     {
-      pwm_value = 15;
-      digitalWrite(motordir, LOW); 
+      while (scale.get_units(), 1 <= 0) // Hopefully this line works - while the load cell sees no force  
+      {
+       pwm_value = 15;                   // move slowly
+       digitalWrite(motordir, LOW);      // move down
+      }
+      
+      scale.set_scale();      // think this loadsthe calibration factor
+      scale.tare();          //Reset the scale to 0  
+
+
+      
     }
 }
  //START BUTTON SECTION OF CODE
