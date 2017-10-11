@@ -129,9 +129,9 @@ while (true)
 // tube and repeats 4 more times. Averages spring constant measurements and displays on LCD. 
  
  
-while( measurementCounter > 5) // while the motor is above the spring tube
+while( measurementCounter < 5) // while the motor is above the spring tube
       {
-        measurementCounter = ++; //increments measurementCounter variable 
+        measurementCounter ++; //increments measurementCounter variable 
     
   if (encoderPosition > -35000)  //if the position of the encoder is above the top of the spring tube.
     {
@@ -140,7 +140,7 @@ while( measurementCounter > 5) // while the motor is above the spring tube
     }
   else
     {
-      while (scale.get_units(), 1 <= 0) // Hopefully this line works - while the load cell sees no force  
+      for (scale.get_units(), 1 <= 0) // Hopefully this line works - while the load cell sees no force  
       {
        pwm_value = 15;                   // move slowly
        digitalWrite(motordir, LOW);      // move down
