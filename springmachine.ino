@@ -5,6 +5,8 @@
 // include library for encoder
 #include <Encoder.h>
 
+void GoHome();
+
 // set pins (both with interupt capability) for the outputs of the encoder
 Encoder myEnc(18, 19);
 
@@ -24,7 +26,10 @@ HX711 scale(DOUT, CLK);
 float calibration_factor = -215000; //-7050 worked for my 440lb max scale setup
 
 enum {
-  kStateHome,
+  kStateGoHome,
+  kStateRetract,
+  kStateDetectSpring,
+  kStatePreLoad,
   kStateTakeMeasurement
 };
 
@@ -63,7 +68,7 @@ int measurementCounter = 0;
 
 void setup() {
 
-  state.current = kStateHome;
+  state.current = kStateGoHome;
 
   // LCD SETUP 
   // set up the LCD's number of columns and rows:
@@ -95,16 +100,15 @@ void loop() {
   uint8_t i;
   float avgMeasurement;
   switch (state.current) {
-    case kStateHome:
-      // return the thing to the home position
-      if (/* we're done */) {
-        state.current = kStateIdle;
-      }
+    case kStateGoHome:
+      GoHome();
+      state.current = kStateIdle;
       break;
     case kStateIdle:
       // wait for button press
-      if (/* button pressed */) {
+      if (digitalRead(buttonPin) == HIGH) {
         state.current = kStateDetectSpring;
+        lcd.print("Beginning test");
       }
       break;
     case kStateRetract: // Retract partially (just above where we detected the spring the first time)
@@ -120,10 +124,31 @@ void loop() {
     case kStatePreLoad:
       // Move down a little bit
       if (/* we've gone far enough */) {
-        
+        state.current = kStateTakeMeasurement;
       }
       break;
     case kStateTakeMeasurement:
+      if (encoderPosition > -35000) //if the position of the encoder is above the top of the spring tube.
+      {
+        pwm_value = 75; // motor speed - medium speed
+        digitalWrite(motordir, LOW); // motor direction - down
+      } else {
+        while (scale.get_units() <= 0) // Hopefully this line works - while the load cell sees no force  
+        {
+          pwm_value = 15; // move slowly
+          digitalWrite(motordir, LOW); // move down
+        }
+  
+        encoderPosition = 0; // zeros the encoder positon
+  
+        // While the current state of the encoder is less that 0.05'' down from when force was detected
+        if (encoderPosition == -1040) {
+          scale.tare(); //Reset the scale to 0  // zeros the load cell
+          // move motor down until encoder position is 6242 pulses further down.
+          pwm_value = 15; // move slowly
+          digitalWrite(motordir, LOW); // move down
+        }
+      }
       if (/* we've gone far enough */) {
         state.measurements[state.currentMeasurement] = /* whatever */;
         state.currentMeasurement++;
@@ -134,40 +159,17 @@ void loop() {
           }
           avgMeasurement /= (float) NUM_MEASUREMENTS;
           // TODO: display this value
+          
+          lcd.print("Reading: ");
+          lcd.print(scale.get_units(), 1);
+          lcd.print(" lbs"); //Change this to kg and re-adjust the calibration factor if you follow SI 
+          state.current = kStateGoHome;
+        } else {
+          state.current = kStateRetract;
         }
       }
       break;
   }
-
-  //motor driver
-
-  int pwm_value;
-
-  long encoderPosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
-
-  //STARTUP SEQUENCE - HOME THE MACHINE AND WAIT FOR BUTTON PUSH
-
-  // Move the motor slowly up until the endStopState is triggered
-  endstopstate = digitalRead(endstopPin);
-  if (endstopstate != HIGH) {
-    pwm_value = 200; // low power to motor.
-    analogWrite(motorpwm, pwm_value);
-    digitalWrite(motordir, HIGH); // motor direction = up  
-  }
-  while (endstopstate != HIGH) {
-    endstopstate = digitalRead(endstopPin); // read the value 
-  }
-
-  // now we know that the motor is in the starting position
-  encoderPosition = 0; //resets the position of the endstop to zero
-  pwm_value = 0; // no power to motor.
-  analogWrite(motorpwm, pwm_value);
-  digitalWrite(motordir, LOW); // motor direction = down
-
-  while (buttonState != HIGH) {
-    buttonState = digitalRead(buttonPin); // read the pushbutton input pin:
-  }
-  lcd.print("You pressed the button!");
 
   // Second Loop - measurement loop. loops until process is repeated 5 times.
   // Quickly drives the motor down to just above spring tube. Then moves down slowly until the spring
@@ -175,33 +177,9 @@ void loop() {
   // spring constant force detected/0.35'' = spring constant measurement1. Moves back up to just above spring
   // tube and repeats 4 more times. Averages spring constant measurements and displays on LCD. 
 
-  while (measurementCounter < 5) // while the motor is above the spring tube
-  {
-    measurementCounter++; //increments measurementCounter variable 
 
-    if (encoderPosition > -35000) //if the position of the encoder is above the top of the spring tube.
-    {
-      pwm_value = 75; // motor speed - medium speed
-      digitalWrite(motordir, LOW); // motor direction - down
-    } else {
-      while (scale.get_units() <= 0) // Hopefully this line works - while the load cell sees no force  
-      {
-        pwm_value = 15; // move slowly
-        digitalWrite(motordir, LOW); // move down
-      }
+  digitalWrite(motordir, LOW); // motor direction = down
 
-      encoderPosition = 0; // zeros the encoder positon
-
-      // While the current state of the encoder is less that 0.05'' down from when force was detected
-      if (encoderPosition == -1040) {
-        scale.tare(); //Reset the scale to 0  // zeros the load cell
-        // move motor down until encoder position is 6242 pulses further down.
-        pwm_value = 15; // move slowly
-        digitalWrite(motordir, LOW); // move down
-      }
-
-    }
-  }
   //START BUTTON SECTION OF CODE
 
   // read the state of the pushbutton value:
@@ -224,12 +202,33 @@ void loop() {
 
   // If the start button is not being pushed - display the live readings from the loadcell
   if (buttonState == LOW) {
-    lcd.print("Reading: ");
-    lcd.print(scale.get_units(), 1);
-    lcd.print(" lbs"); //Change this to kg and re-adjust the calibration factor if you follow SI 
   }
 
   //set the value of motorpwm to pwm_value
   analogWrite(motorpwm, pwm_value);
-
 }
+
+
+void GoHome() {
+  int pwm_value;
+  long encoderPosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
+
+  //STARTUP SEQUENCE - HOME THE MACHINE AND WAIT FOR BUTTON PUSH
+
+  // Move the motor slowly up until the endStopState is triggered
+  endstopstate = digitalRead(endstopPin);
+  if (endstopstate != HIGH) {
+    pwm_value = 200; // low power to motor.
+    analogWrite(motorpwm, pwm_value);
+    digitalWrite(motordir, HIGH); // motor direction = up  
+  }
+  while (endstopstate != HIGH) {
+    endstopstate = digitalRead(endstopPin); // read the value 
+  }
+
+  // now we know that the motor is in the starting position
+  encoderPosition = 0; //resets the position of the endstop to zero
+  pwm_value = 0; // no power to motor.
+  analogWrite(motorpwm, pwm_value);
+}
+
