@@ -93,6 +93,11 @@ endstopstate = digitalRead(endstopPin);
 
 //STARTUP SEQUENCE - HOME THE MACHINE AND WAIT FOR BUTTON PUSH
 
+
+
+while (buttonPushCounter = 0)
+{
+
 //determine if the start button has been pressed or not. If it has not been pressed 
 //then we are in the Startup Sequence 
 
@@ -110,9 +115,6 @@ endstopstate = digitalRead(endstopPin);
         }
     }
       
-
-while (buttonPushCounter = 0)
-{
   if (endstopstate == HIGH)  // if the endstop has been triggered
     {
       encoderPosition = 0;   //resets the position of the endstop to zero
