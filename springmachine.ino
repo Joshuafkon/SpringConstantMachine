@@ -47,6 +47,8 @@ int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 0;         // current state of the button
 int lastButtonState = 0;     // previous state of the button
 
+int measurementCounter = 0;
+
 void setup() {
 
 
@@ -94,25 +96,13 @@ endstopstate = digitalRead(endstopPin);
 //STARTUP SEQUENCE - HOME THE MACHINE AND WAIT FOR BUTTON PUSH
 
 
-
-while (buttonPushCounter = 0)
+// First Loop. Loops until start button is pressed. Moves motor up until endstop is pressed.
+while (true)
 {
-
-//determine if the start button has been pressed or not. If it has not been pressed 
-//then we are in the Startup Sequence 
-
-// read the pushbutton input pin:
-  buttonState = digitalRead(buttonPin);
-
-  // compare the buttonState to its previous state
-  if (buttonState != lastButtonState) 
+  buttonState = digitalRead(buttonPin); // read the pushbutton input pin:
+  if (buttonState == HIGH) 
     {
-    // if the state has changed, increment the counter
-      if (buttonState == HIGH) 
-        {
-      // if the current state is HIGH then the button went from off to on:
-         buttonPushCounter++;
-        }
+    break;
     }
       
   if (endstopstate == HIGH)  // if the endstop has been triggered
@@ -120,25 +110,37 @@ while (buttonPushCounter = 0)
       encoderPosition = 0;   //resets the position of the endstop to zero
       pwm_value = 0;        // no power to motor.
       digitalWrite(motordir, LOW); // motor direction = down
+      break;
     }
-  else
-    {
-      pwm_value = 25;
-      digitalWrite(motordir, HIGH);
-    }
+    else
+      {
+       pwm_value = 25;        // low power to motor.
+       digitalWrite(motordir, HIGH); // motor direction = up  
+      }
+      
 }
 
-while (buttonPushCounter = 1)
-{
-  if (encoderPosition > -35000)
+
+// Second Loop - measurement loop. loops until process is repeated 5 times.
+// Quickly drives the motor down to just above spring tube. Then moves down slowly until the spring
+// is dected by the load cell. Moves down 0.05'' zeros the force at this point. Moves down .35'' calculates
+// spring constant force detected/0.35'' = spring constant measurement1. Moves back up to just above spring
+// tube and repeats 4 more times. Averages spring constant measurements and displays on LCD. 
+ 
+ 
+while( measurementCounter > 5) // while the motor is above the spring tube
+      {
+        measurementCounter = ++; //increments measurementCounter variable 
+    
+  if (encoderPosition > -35000)  //if the position of the encoder is above the top of the spring tube.
     {
-      pwm_value = 75;
-      digitalWrite(motordir, LOW);
+      pwm_value = 75;             // motor speed - medium speed
+      digitalWrite(motordir, LOW); // motor direction - down
     }
   else
     {
-      pwm_value = 0;
-      digitalWrite(motordir, HIGH); 
+      pwm_value = 15;
+      digitalWrite(motordir, LOW); 
     }
 }
  //START BUTTON SECTION OF CODE
