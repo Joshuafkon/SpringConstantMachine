@@ -38,14 +38,17 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 //Setup the pin for the start button
 const int buttonPin = 7;     // the number of the pushbutton pin
 // variable for the state of the button (high or low)
-int buttonState = 0;         // variable for reading the pushbutton status
+
 
 int endstopstate = 0; //variable for the endstop
 const int endstopPin = 11; // the end stop pin (HIGH when pressed)
+int buttonPressed = 0;
 
 void setup() {
 
-
+int buttonPushCounter = 0;   // counter for the number of button presses
+int buttonState = 0;         // current state of the button
+int lastButtonState = 0;     // previous state of the button
 
 // LCD SETUP 
   // set up the LCD's number of columns and rows:
@@ -78,7 +81,8 @@ pinMode(endstopPin, INPUT); // sets the endstop pin as an INPUT
 void loop() {
 
 
-  //motor driver
+//motor driver
+
 
 int pwm_value;
 
@@ -86,30 +90,49 @@ long encoderPosition = myEnc.read();  // reads the number of pules seen by the e
 
 endstopstate = digitalRead(endstopPin);
 
-if (endstopstate == HIGH)  // if the endstop has been triggered
+//STARTUP SEQUENCE - HOME THE MACHINE AND WAIT FOR BUTTON PUSH
+
+//determine if the start button has been pressed or not. If it has not been pressed 
+//then we are in the Startup Sequence 
+
+// read the pushbutton input pin:
+  buttonState = digitalRead(buttonPin);
+
+  // compare the buttonState to its previous state
+  if (buttonState != lastButtonState) {
+    // if the state has changed, increment the counter
+    if (buttonState == HIGH) {
+      // if the current state is HIGH then the button went from off to on:
+      buttonPushCounter++;
+
+while (buttonPushCounter = 0)
 {
-  encoderPosition = 0;   //resets the position of the endstop to zero
-  pwm_value = 0;        // no power to motor.
-  digitalWrite(motordir, LOW); // motor direction = down
+  if (endstopstate == HIGH)  // if the endstop has been triggered
+    {
+      encoderPosition = 0;   //resets the position of the endstop to zero
+      pwm_value = 0;        // no power to motor.
+      digitalWrite(motordir, LOW); // motor direction = down
+    }
+  else
+    {
+      pwm_value = 25;
+      digitalWrite(motordir, HIGH);
+    }
 }
-else
+
+while (buttonPushCounter = 1)
 {
-  pwm_value = 25;
-  digitalWrite(motordir, HIGH);
+  if (encoderPosition > -35000)
+    {
+      pwm_value = 75;
+      digitalWrite(motordir, LOW);
+    }
+  else
+    {
+      pwm_value = 0;
+      digitalWrite(motordir, HIGH); 
+    }
 }
-
-//if (encoderPosition > -3000)
-//{
-//  pwm_value = 25;
-//  digitalWrite(motordir, LOW);
-//}
-//else
-//{
-//  pwm_value = 0;
-//  digitalWrite(motordir, HIGH);
-//}
-
-
  //START BUTTON SECTION OF CODE
  
  // read the state of the pushbutton value:
