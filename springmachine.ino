@@ -76,6 +76,7 @@ pinMode(endstopPin, INPUT); // sets the endstop pin as an INPUT
  int pwm_val = 0;
 
  long encoderPosition = 0;
+ long encoderSpringPosition = 0;
 
 }
 
@@ -144,10 +145,17 @@ while( measurementCounter > 5) // while the motor is above the spring tube
        pwm_value = 15;                   // move slowly
        digitalWrite(motordir, LOW);      // move down
       }
-      
-      scale.set_scale();      // think this loadsthe calibration factor
-      scale.tare();          //Reset the scale to 0  
 
+      encoderPosition = 0; // zeros the encoder positon
+
+      // While the current state of the encoder is less that 0.05'' down from when force was detected
+      if (encoderPosition == -1040) 
+      {
+        scale.tare();          //Reset the scale to 0  // zeros the load cell
+        // move motor down until encoder position is 6242 pulses further down.
+        pwm_value = 15;                   // move slowly
+        digitalWrite(motordir, LOW);      // move down
+      }
 
       
     }
