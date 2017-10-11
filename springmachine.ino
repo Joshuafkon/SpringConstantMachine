@@ -40,6 +40,7 @@ const int buttonPin = 7;     // the number of the pushbutton pin
 // variable for the state of the button (high or low)
 int buttonState = 0;         // variable for reading the pushbutton status
 
+int endstopstate = 0; //variable for the endstop
 const int endstopPin = 11; // the end stop pin (HIGH when pressed)
 
 void setup() {
@@ -79,11 +80,13 @@ void loop() {
 
   //motor driver
 
-  int pwm_value;
+int pwm_value;
 
 long encoderPosition = myEnc.read();  // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
 
-if (endstopPin == HIGH)  // if the endstop has been triggered
+endstopstate = digitalRead(endstopPin);
+
+if (endstopstate == HIGH)  // if the endstop has been triggered
 {
   encoderPosition = 0;   //resets the position of the endstop to zero
   pwm_value = 0;        // no power to motor.
