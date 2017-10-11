@@ -43,12 +43,13 @@ const int buttonPin = 7;     // the number of the pushbutton pin
 int endstopstate = 0; //variable for the endstop
 const int endstopPin = 11; // the end stop pin (HIGH when pressed)
 int buttonPressed = 0;
-
-void setup() {
-
 int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 0;         // current state of the button
 int lastButtonState = 0;     // previous state of the button
+
+void setup() {
+
+
 
 // LCD SETUP 
   // set up the LCD's number of columns and rows:
@@ -99,11 +100,16 @@ endstopstate = digitalRead(endstopPin);
   buttonState = digitalRead(buttonPin);
 
   // compare the buttonState to its previous state
-  if (buttonState != lastButtonState) {
+  if (buttonState != lastButtonState) 
+    {
     // if the state has changed, increment the counter
-    if (buttonState == HIGH) {
+      if (buttonState == HIGH) 
+        {
       // if the current state is HIGH then the button went from off to on:
-      buttonPushCounter++;
+         buttonPushCounter++;
+        }
+    }
+      
 
 while (buttonPushCounter = 0)
 {
@@ -139,7 +145,8 @@ while (buttonPushCounter = 1)
   buttonState = digitalRead(buttonPin);
   
   // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
-  if (buttonState == HIGH) {
+  if (buttonState == HIGH) 
+  {
 
   lcd.setCursor(0, 1);
   lcd.print(encoderPosition);
@@ -160,17 +167,19 @@ while (buttonPushCounter = 1)
  scale.set_scale(calibration_factor); //Adjust to this calibration factor
  
 // If the start button is not being pushed - display the live readings from the loadcell
-if (buttonState == LOW) {
+if (buttonState == LOW) 
+  {
   lcd.print("Reading: ");
   lcd.print(scale.get_units(), 1);
   lcd.print(" lbs"); //Change this to kg and re-adjust the calibration factor if you follow SI 
-}
+  }
+
 //set the value of motorpwm to pwm_value
   analogWrite(motorpwm,pwm_value);
  
-}
 
-
+    }
+ 
 
   
 
