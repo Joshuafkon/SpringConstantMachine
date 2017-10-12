@@ -195,8 +195,10 @@ void GoAboveSpring() {
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, LOW); // motor direction = down  
   }
+  else{
   pwm_value = 0; // no power to motor.
   analogWrite(motorpwm, pwm_value);
+  }
 }
 void DetectSpring() {
  
