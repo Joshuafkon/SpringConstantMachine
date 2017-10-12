@@ -6,7 +6,6 @@
 
 void GoHome(); // declares function GoHome
 void GoAboveSpring(); // declares function GoAboveSpring
-void DetectSpring();  // declares function DetectSpring
 void PreLoad(); // declares function PreLoad
 void TakeMeasurement(); // declares function TakeMeasurement
 void retract();//declares function retract
@@ -43,6 +42,8 @@ enum {
 
 struct {
   long encoderZeroPosition;
+  long encoderSpringPosition;
+  long encoderTarePosition;
   uint8_t current;
   float measurements[NUM_MEASUREMENTS];
   uint8_t currentMeasurement;
@@ -134,10 +135,10 @@ void loop() {
       state.current = kStateDetectSpring;
       break;
     case kStateDetectSpring:
-      pwm_value = 10; // motor speed - slow speed
+      pwm_value = 25; // motor speed - slow speed
       digitalWrite(motordir, LOW); // motor direction - down
       if (scale.get_units() > 0) {
-        DetectSpring();
+        state.encoderSpringPosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
         state.current = kStatePreLoad;
       }
       break;
@@ -171,7 +172,6 @@ void GoHome() {
   state.encoderZeroPosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
 
   // now we know that the motor is in the starting position
-  encoderPosition = 0; //resets the position of the endstop to zero
   pwm_value = 0; // no power to motor.
   analogWrite(motorpwm, pwm_value);
 }
@@ -193,17 +193,16 @@ void GoAboveSpring() {
   analogWrite(motorpwm, pwm_value);
 }
 
-void DetectSpring() {
-  encoderPosition = 0; // zeros the encoder positon
-}
+  
+
 
 void PreLoad() {
-  while (encoderPosition > -1040) {
-    pwm_value = 10; //  power to motor.
+  while (myEnc.read() - state.encoderSpringPosition > -1040) {
+    pwm_value = 25; //  power to motor.
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, LOW); // motor direction = down
   }
-  encoderPosition = 0; // zeros the encoder positon
+  state.encoderTarePosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
   scale.tare();          //Reset the scale to 0  // zeros the load cell
 }
 
