@@ -37,6 +37,7 @@ enum {
   kStatePreLoad,
   kStateTakeMeasurement,
   kStateIdle,
+  kGoAboveSpring,
 };
 
 #define NUM_MEASUREMENTS 5
@@ -135,6 +136,11 @@ void loop() {
       state.current = kStateDetectSpring;
       
       break;
+    case kGoAboveSpring: // move quickly to just above spring
+      GoAboveSpring();
+      state.current = kStateDetectSpring;
+      
+      break;
     case kStateDetectSpring:
     pwm_value = 10; // motor speed - slow speed
         digitalWrite(motordir, LOW); // motor direction - down
@@ -181,8 +187,7 @@ void GoHome() {
   analogWrite(motorpwm, pwm_value);
 }
 void GoAboveSpring() {
-  //STARTUP SEQUENCE - HOME THE MACHINE AND WAIT FOR BUTTON PUSH
-
+  
   // Move the motor slowly up until the endStopState is triggered
   endstopstate = digitalRead(endstopPin);
   if (encoderPosition > -35000) {
