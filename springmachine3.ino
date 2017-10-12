@@ -142,6 +142,8 @@ void loop() {
       state.current = kStateDetectSpring;
       break;
     case kStateDetectSpring:
+      lcd.setCursor(0, 0);
+      lcd.print(scale.get_units());
       lcd.setCursor(0, 1);
       lcd.print ("DETECT");
       pwm_value = 25; // motor speed - slow speed
