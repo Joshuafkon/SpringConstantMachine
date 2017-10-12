@@ -201,15 +201,22 @@ void PreLoad() {
     pwm_value = 25; //  power to motor.
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, LOW); // motor direction = down
+    lcd.setCursor(0, 1);
+    lcd.print(scale.get_units());
+    lcd.setCursor(1, 1);
+    lcd.print(myEnc.read() - state.encoderSpringPosition);
   }
   state.encoderTarePosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
   scale.tare();          //Reset the scale to 0  // zeros the load cell
+
+
+  
 }
 
 void TakeMeasurement() {
   uint8_t i;
   float avgMeasurement;
-  while (encoderPosition > -6242 ) {
+  while ( myEnc.read() - state.encoderTarePosition> -6242 ) {
     pwm_value = 10; //  power to motor.
     digitalWrite(motordir, LOW); // motor direction = down
   }
