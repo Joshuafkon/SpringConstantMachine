@@ -115,26 +115,35 @@ void loop() {
   float avgMeasurement;
   switch (state.current) {
     case kStateGoHome:
+      lcd.setCursor(0, 1);
+      lcd.print ("GO HOME");
       GoHome();
       state.current = kStateIdle;
       break;
     case kStateIdle:
+      lcd.setCursor(0, 1);
+      lcd.print ("IDLE");
       // wait for button press
       if (digitalRead(buttonPin) == HIGH) {
         GoAboveSpring();
         state.current = kStateDetectSpring;
-        lcd.print("Beginning test");
       }
       break;
     case kStateRetract: // Retract partially (just above where we detected the spring the first time)
+      lcd.setCursor(0, 1);
+      lcd.print ("RETRACT");
       retract();
       state.current = kStateDetectSpring;
       break;
     case kGoAboveSpring: // move quickly to just above spring
+      lcd.setCursor(0, 1);
+      lcd.print ("ABOVE SPRING");
       GoAboveSpring();
       state.current = kStateDetectSpring;
       break;
     case kStateDetectSpring:
+      lcd.setCursor(0, 1);
+      lcd.print ("DETECT");
       pwm_value = 25; // motor speed - slow speed
       digitalWrite(motordir, LOW); // motor direction - down
       if (scale.get_units() > 0) {
@@ -143,11 +152,15 @@ void loop() {
       }
       break;
     case kStatePreLoad:
+      lcd.setCursor(0, 1);
+      lcd.print ("PRELOAD");
       // Move down a little bit (0.05'') and zero the load cell and the encoder position
       PreLoad();
       state.current = kStateTakeMeasurement;
       break;
     case kStateTakeMeasurement:
+      lcd.setCursor(0, 1);
+      lcd.print ("MEASUREMENT");
       TakeMeasurement();
       break;
   }
@@ -201,9 +214,10 @@ void PreLoad() {
     pwm_value = 25; //  power to motor.
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, LOW); // motor direction = down
+    
     lcd.setCursor(0, 1);
     lcd.print(scale.get_units());
-    lcd.setCursor(1, 1);
+    lcd.setCursor(15, 0);
     lcd.print(myEnc.read() - state.encoderSpringPosition);
   }
   state.encoderTarePosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
@@ -217,7 +231,7 @@ void TakeMeasurement() {
   uint8_t i;
   float avgMeasurement;
   while ( myEnc.read() - state.encoderTarePosition> -6242 ) {
-    pwm_value = 10; //  power to motor.
+    pwm_value = 0; //  power to motor.
     digitalWrite(motordir, LOW); // motor direction = down
   }
   //actually calculate the spring constant
