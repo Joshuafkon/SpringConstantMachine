@@ -127,43 +127,37 @@ void loop() {
       // wait for button press
       if (digitalRead(buttonPin) == HIGH) {
         GoAboveSpring();
-    state.current = kStateDetectSpring;
+        state.current = kStateDetectSpring;
         lcd.print("Beginning test");
       }
       break;
     case kStateRetract: // Retract partially (just above where we detected the spring the first time)
       retract();
       state.current = kStateDetectSpring;
-      
       break;
     case kGoAboveSpring: // move quickly to just above spring
       GoAboveSpring();
       state.current = kStateDetectSpring;
-      
       break;
     case kStateDetectSpring:
-    pwm_value = 10; // motor speed - slow speed
-        digitalWrite(motordir, LOW); // motor direction - down
-    if (scale.get_units() > 0) {
-    DetectSpring();
+      pwm_value = 10; // motor speed - slow speed
+      digitalWrite(motordir, LOW); // motor direction - down
+      if (scale.get_units() > 0) {
+        DetectSpring();
         state.current = kStatePreLoad;
       }
       break;
     case kStatePreLoad:
       // Move down a little bit (0.05'') and zero the load cell and the encoder position
       PreLoad();
-        state.current = kStateTakeMeasurement;
-      
+      state.current = kStateTakeMeasurement;
       break;
     case kStateTakeMeasurement:
-  
-          TakeMeasurement();
-  
-        
-      
+      TakeMeasurement();
       break;
+  }
 }
-}
+
 void GoHome() {
   int pwm_value;
   long encoderPosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
@@ -186,6 +180,7 @@ void GoHome() {
   pwm_value = 0; // no power to motor.
   analogWrite(motorpwm, pwm_value);
 }
+
 void GoAboveSpring() {
   
   // Move the motor slowly up until the endStopState is triggered
@@ -195,15 +190,16 @@ void GoAboveSpring() {
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, LOW); // motor direction = down  
   }
-  else{
-  pwm_value = 0; // no power to motor.
-  analogWrite(motorpwm, pwm_value);
+  else {
+    pwm_value = 0; // no power to motor.
+    analogWrite(motorpwm, pwm_value);
   }
 }
+
 void DetectSpring() {
- 
  encoderPosition = 0; // zeros the encoder positon
 }
+
 void PreLoad() {
  
  while (encoderPosition > -1040) {
@@ -214,47 +210,40 @@ void PreLoad() {
  encoderPosition = 0; // zeros the encoder positon
  scale.tare();          //Reset the scale to 0  // zeros the load cell
 }
-void TakeMeasurement(){
 
-uint8_t i;
-float avgMeasurement;
- while (encoderPosition > -6242 ) {
-    
+void TakeMeasurement(){
+  uint8_t i;
+  float avgMeasurement;
+  while (encoderPosition > -6242 ) {
     pwm_value = 10; //  power to motor.
     digitalWrite(motordir, LOW); // motor direction = down 
-    }
-    
-    //actually calculate the spring constant
-    //increments so that it repeats five times 
-     state.measurements[state.currentMeasurement] = scale.get_units()/.3;
-        state.currentMeasurement++;
+  }
+  //actually calculate the spring constant
+  //increments so that it repeats five times 
+  state.measurements[state.currentMeasurement] = scale.get_units()/.3;
+  state.currentMeasurement++;
       
-    // After five cycles it displays the measurements
-    if (state.currentMeasurement == NUM_MEASUREMENTS) {
-          // now stop, average measurements, & display result
-          for (i = 0, avgMeasurement = 0.0f; i < NUM_MEASUREMENTS; i++) {
-            avgMeasurement += state.measurements[i];
-          }
-          avgMeasurement /= (float) NUM_MEASUREMENTS;
-          // TODO: display this value
+  // After five cycles it displays the measurements
+  if (state.currentMeasurement == NUM_MEASUREMENTS) {
+    // now stop, average measurements, & display result
+    for (i = 0, avgMeasurement = 0.0f; i < NUM_MEASUREMENTS; i++) {
+      avgMeasurement += state.measurements[i];
+    }
+    avgMeasurement /= (float) NUM_MEASUREMENTS;
+    // TODO: display this value
           
-          lcd.print("Constant: ");
-          lcd.print(avgMeasurement);
-          lcd.print(" lbs/in"); // units for spring constant 
-          state.current = kStateGoHome;
-      }
-      else
-      {
-      state.current = kStateRetract;
-      }
-      }
-void retract()
-{
-while (encoderPosition < 3000 ) {
-    
+    lcd.print("Constant: ");
+    lcd.print(avgMeasurement);
+    lcd.print(" lbs/in"); // units for spring constant 
+    state.current = kStateGoHome;
+  } else {
+    state.current = kStateRetract;
+  }
+}
+
+void retract() {
+  while (encoderPosition < 3000 ) {
     pwm_value = 10; //  power to motor.
     digitalWrite(motordir, HIGH); // motor direction = up 
-    }
-
-
+  }
 }
