@@ -1,5 +1,5 @@
-/* Spring Constant Calculator Machine --- Joshua Konstantinos 
- */
+/* Spring Constant Calculator Machine --- Joshua Konstantinos
+*/
 
 // include library for encoder
 #include <Encoder.h>
@@ -27,7 +27,7 @@ Encoder myEnc(18, 19);
 
 // Set the calibration factor for the load cell it its current setup
 HX711 scale(DOUT, CLK);
-float calibration_factor = -215000; //appears to be well calibrated 
+float calibration_factor = -215000; //appears to be well calibrated
 
 enum {
   kStateGoHome,
@@ -42,21 +42,22 @@ enum {
 #define NUM_MEASUREMENTS 5
 
 struct {
+  long encoderZeroPosition;
   uint8_t current;
   float measurements[NUM_MEASUREMENTS];
   uint8_t currentMeasurement;
 } state;
 
-// include the library for the LCD display 
+// include the library for the LCD display
 #include <LiquidCrystal.h>
 // initialize the library by associating any needed LCD interface pin
 // with the arduino pin number it is connected to
 const int rs = 6,
-  en = 5,
-  d4 = 4,
-  d5 = 3,
-  d6 = 2,
-  d7 = 1;
+          en = 5,
+          d4 = 4,
+          d5 = 3,
+          d6 = 2,
+          d7 = 1;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 //Setup the pin for the start button
@@ -75,13 +76,10 @@ int measurementCounter = 0;
 int pwm_value;
 long encoderPosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
 
-
-
 void setup() {
-
   state.current = kStateGoHome;
 
-  // LCD SETUP 
+  // LCD SETUP
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   // Print a message to the LCD.
@@ -102,19 +100,16 @@ void setup() {
 
   //sets inital value for motor speed to 0
   int pwm_value = 0;
-
-  long encoderPosition = 0;
-  long encoderSpringPosition = 0;
-  
 }
 
 void loop() {
 
- //set the value of motorpwm to pwm_value
+  //set the value of motorpwm to pwm_value
   analogWrite(motorpwm, pwm_value);
- // LOAD CELL loads calibration factor
- scale.set_scale(calibration_factor); //Adjust to this calibration factor
-  
+  // LOAD CELL loads calibration factor
+  scale.set_scale(calibration_factor); //Adjust to this calibration factor
+
+
   uint8_t i;
   float avgMeasurement;
   switch (state.current) {
@@ -159,7 +154,6 @@ void loop() {
 
 void GoHome() {
   int pwm_value;
-  long encoderPosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
 
   //STARTUP SEQUENCE - HOME THE MACHINE AND WAIT FOR BUTTON PUSH
 
@@ -168,11 +162,13 @@ void GoHome() {
   if (endstopstate != HIGH) {
     pwm_value = 200; //  power to motor.
     analogWrite(motorpwm, pwm_value);
-    digitalWrite(motordir, HIGH); // motor direction = up  
+    digitalWrite(motordir, HIGH); // motor direction = up
   }
   while (endstopstate != HIGH) {
-    endstopstate = digitalRead(endstopPin); // read the value 
+    endstopstate = digitalRead(endstopPin); // read the value
   }
+
+  state.encoderZeroPosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
 
   // now we know that the motor is in the starting position
   encoderPosition = 0; //resets the position of the endstop to zero
@@ -181,17 +177,15 @@ void GoHome() {
 }
 
 void GoAboveSpring() {
-  
-  lcd.setCursor(0, 1);
-  lcd.print(encoderPosition);
-
-  if (myEnc.read() > -35000) {
+  if (myEnc.read() - state.encoderZeroPosition > -10000) {
     pwm_value = 100; //  power to motor.
     analogWrite(motorpwm, pwm_value);
-    digitalWrite(motordir, LOW); // motor direction = down  
+    digitalWrite(motordir, LOW); // motor direction = down
   }
   // just keep looping and doing nothing until the position is correct
-  while (myEnc.read() > -35000) {
+  while (myEnc.read()- state.encoderZeroPosition > -10000) {
+    lcd.setCursor(0, 1);
+    lcd.print(myEnc.read() - state.encoderZeroPosition);
     continue;
   }
   // turn off the motor now that we've reached the correct point
@@ -200,32 +194,31 @@ void GoAboveSpring() {
 }
 
 void DetectSpring() {
- encoderPosition = 0; // zeros the encoder positon
+  encoderPosition = 0; // zeros the encoder positon
 }
 
 void PreLoad() {
- 
- while (encoderPosition > -1040) {
-  pwm_value = 10; //  power to motor.
-  analogWrite(motorpwm, pwm_value);
-  digitalWrite(motordir, LOW); // motor direction = down  
- }
- encoderPosition = 0; // zeros the encoder positon
- scale.tare();          //Reset the scale to 0  // zeros the load cell
+  while (encoderPosition > -1040) {
+    pwm_value = 10; //  power to motor.
+    analogWrite(motorpwm, pwm_value);
+    digitalWrite(motordir, LOW); // motor direction = down
+  }
+  encoderPosition = 0; // zeros the encoder positon
+  scale.tare();          //Reset the scale to 0  // zeros the load cell
 }
 
-void TakeMeasurement(){
+void TakeMeasurement() {
   uint8_t i;
   float avgMeasurement;
   while (encoderPosition > -6242 ) {
     pwm_value = 10; //  power to motor.
-    digitalWrite(motordir, LOW); // motor direction = down 
+    digitalWrite(motordir, LOW); // motor direction = down
   }
   //actually calculate the spring constant
-  //increments so that it repeats five times 
-  state.measurements[state.currentMeasurement] = scale.get_units()/.3;
+  //increments so that it repeats five times
+  state.measurements[state.currentMeasurement] = scale.get_units() / .3;
   state.currentMeasurement++;
-      
+
   // After five cycles it displays the measurements
   if (state.currentMeasurement == NUM_MEASUREMENTS) {
     // now stop, average measurements, & display result
@@ -234,10 +227,10 @@ void TakeMeasurement(){
     }
     avgMeasurement /= (float) NUM_MEASUREMENTS;
     // TODO: display this value
-          
+
     lcd.print("Constant: ");
     lcd.print(avgMeasurement);
-    lcd.print(" lbs/in"); // units for spring constant 
+    lcd.print(" lbs/in"); // units for spring constant
     state.current = kStateGoHome;
   } else {
     state.current = kStateRetract;
@@ -245,8 +238,8 @@ void TakeMeasurement(){
 }
 
 void retract() {
-  while (encoderPosition < 3000 ) {
+  while (encoderPosition < 3000) {
     pwm_value = 10; //  power to motor.
-    digitalWrite(motordir, HIGH); // motor direction = up 
+    digitalWrite(motordir, HIGH); // motor direction = up
   }
 }
