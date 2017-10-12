@@ -10,6 +10,7 @@ void GoAboveSpring(); // declares function GoAboveSpring
 void DetectSpring();	// declares function DetectSpring
 void PreLoad(); // declares function PreLoad
 void TakeMeasurement(); // declares function TakeMeasurement
+void retract();//declares function retract
 
 // set pins (both with interupt capability) for the outputs of the encoder
 Encoder myEnc(18, 19);
@@ -104,7 +105,7 @@ void setup() {
   long encoderPosition = 0;
   long encoderSpringPosition = 0;
   
-
+}
 
 void loop() {
 
@@ -129,9 +130,9 @@ void loop() {
       }
       break;
     case kStateRetract: // Retract partially (just above where we detected the spring the first time)
-      if (/* we've gone far enough */) {
-        state.current = kStateDetectSpring;
-      }
+      retact():
+      state.current = kStateDetectSpring;
+      
       break;
     case kStateDetectSpring:
 		pwm_value = 10; // motor speed - slow speed
@@ -145,18 +146,16 @@ void loop() {
       // Move down a little bit (0.05'') and zero the load cell and the encoder position
       PreLoad();
         state.current = kStateTakeMeasurement;
-      }
+      
       break;
     case kStateTakeMeasurement:
   
           TakeMeasurement();
-     
-        } else {
-          state.current = kStateRetract;
-        }
-      }
+  
+        
+      
       break;
-  }
+}
 
 void GoHome() {
   int pwm_value;
@@ -238,3 +237,13 @@ void TakeMeasurement(){
 		  state.current = kStateRetract;
 		  }
 		  }
+void Retract
+{
+while (encoderPosition < 3000 ) {
+		
+		pwm_value = 10; //  power to motor.
+		digitalWrite(motordir, HIGH); // motor direction = up 
+		}
+
+
+}
