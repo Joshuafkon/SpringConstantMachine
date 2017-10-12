@@ -73,6 +73,8 @@ int measurementCounter = 0;
 int pwm_value;
 long encoderPosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
 
+
+
 void setup() {
 
   state.current = kStateGoHome;
@@ -101,7 +103,8 @@ void setup() {
 
   long encoderPosition = 0;
   long encoderSpringPosition = 0;
-}
+  
+
 
 void loop() {
 
@@ -205,10 +208,19 @@ void PreLoad() {
  scale.tare();          //Reset the scale to 0  // zeros the load cell
 }
 void TakeMeasurement(){
- if (encoderPosition > -6242 ) {
-        state.measurements[state.currentMeasurement] = /* whatever */;
+ while (encoderPosition > -6242 ) {
+		
+		pwm_value = 10; //  power to motor.
+		digitalWrite(motordir, LOW); // motor direction = down 
+		}
+		
+		//actually calculate the spring constant
+		//increments so that it repeats five times 
+	   state.measurements[state.currentMeasurement] = scale.get_units()/.3;
         state.currentMeasurement++;
-        if (state.currentMeasurement == NUM_MEASUREMENTS) {
+      
+		// After five cycles it displays the measurements
+		if (state.currentMeasurement == NUM_MEASUREMENTS) {
           // now stop, average measurements, & display result
           for (i = 0, avgMeasurement = 0.0f; i < NUM_MEASUREMENTS; i++) {
             avgMeasurement += state.measurements[i];
@@ -216,8 +228,13 @@ void TakeMeasurement(){
           avgMeasurement /= (float) NUM_MEASUREMENTS;
           // TODO: display this value
           
-          lcd.print("Reading: ");
-          lcd.print(scale.get_units(), 1);
-          lcd.print(" lbs"); //Change this to kg and re-adjust the calibration factor if you follow SI 
+          lcd.print("Constant: ");
+          lcd.print(avgMeasurement);
+          lcd.print(" lbs/in"); // units for spring constant 
           state.current = kStateGoHome;
+		  }
+		  else
+		  {
+		  state.current = kStateRetract;
+		  }
 		  }
