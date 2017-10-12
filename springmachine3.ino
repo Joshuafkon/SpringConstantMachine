@@ -1,4 +1,3 @@
-
 /* Spring Constant Calculator Machine --- Joshua Konstantinos 
  */
 
@@ -183,6 +182,9 @@ void GoHome() {
 
 void GoAboveSpring() {
   
+  lcd.setCursor(0, 1);
+  lcd.print(encoderPosition);
+
   if (myEnc.read() > -35000) {
     pwm_value = 100; //  power to motor.
     analogWrite(motorpwm, pwm_value);
