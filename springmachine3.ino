@@ -183,17 +183,18 @@ void GoHome() {
 
 void GoAboveSpring() {
   
-  // Move the motor slowly up until the endStopState is triggered
-  endstopstate = digitalRead(endstopPin);
-  if (encoderPosition > -35000) {
+  if (myEnc.read() > -35000) {
     pwm_value = 100; //  power to motor.
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, LOW); // motor direction = down  
   }
-  else {
-    pwm_value = 0; // no power to motor.
-    analogWrite(motorpwm, pwm_value);
+  // just keep looping and doing nothing until the position is correct
+  while (myEnc.read() > -35000) {
+    continue;
   }
+  // turn off the motor now that we've reached the correct point
+  pwm_value = 0; // no power to motor.
+  analogWrite(motorpwm, pwm_value);
 }
 
 void DetectSpring() {
