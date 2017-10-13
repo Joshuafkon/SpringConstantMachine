@@ -196,13 +196,13 @@ void GoHome() {
 }
 
 void GoAboveSpring() {
-  if (myEnc.read() - state.encoderZeroPosition > -35000) {
+  if (myEnc.read() - state.encoderZeroPosition > -25000) {
     pwm_value = 200; //  power to motor.
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, LOW); // motor direction = down
   }
   // just keep looping and doing nothing until the position is correct
-  while (myEnc.read()- state.encoderZeroPosition > -35000) {
+  while (myEnc.read()- state.encoderZeroPosition > -25000) {
     lcd.setCursor(0, 1);
     lcd.print(myEnc.read() - state.encoderZeroPosition);
     continue;
@@ -264,7 +264,7 @@ void TakeMeasurement() {
 }
 
 void retract() {
-  while ( myEnc.read() - state.encoderZeroPosition > -35000) {
+  while ( myEnc.read() - state.encoderZeroPosition > -25000) {
     pwm_value = 10; //  power to motor.
     digitalWrite(motordir, HIGH); // motor direction = up
   }
