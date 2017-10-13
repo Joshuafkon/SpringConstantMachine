@@ -83,8 +83,6 @@ void setup() {
   // LCD SETUP
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
-  // Print a message to the LCD.
-  lcd.print("Spring Machine!");
 
   //load cell setup
   scale.set_scale();
@@ -117,6 +115,7 @@ void loop() {
     case kStateGoHome:
       lcd.setCursor(0, 1);
       lcd.print ("GO HOME");
+      lcd.clear();
       GoHome();
       state.current = kStateIdle;
       break;
@@ -131,17 +130,20 @@ void loop() {
       break;
     case kStateRetract: // Retract partially (just above where we detected the spring the first time)
       lcd.setCursor(0, 1);
+        lcd.clear();
       lcd.print ("RETRACT");
       retract();
       state.current = kStateDetectSpring;
       break;
     case kGoAboveSpring: // move quickly to just above spring
       lcd.setCursor(0, 1);
+        lcd.clear();
       lcd.print ("ABOVE SPRING");
       GoAboveSpring();
       state.current = kStateDetectSpring;
       break;
     case kStateDetectSpring:
+      lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print(scale.get_units());
       lcd.setCursor(0, 1);
@@ -154,6 +156,7 @@ void loop() {
       }
       break;
     case kStatePreLoad:
+      lcd.clear();
       lcd.setCursor(0, 1);
       lcd.print ("PRELOAD");
       // Move down a little bit (0.05'') and zero the load cell and the encoder position
@@ -161,6 +164,7 @@ void loop() {
       state.current = kStateTakeMeasurement;
       break;
     case kStateTakeMeasurement:
+      lcd.clear();
       lcd.setCursor(0, 1);
       lcd.print ("MEASUREMENT");
       TakeMeasurement();
@@ -260,7 +264,7 @@ void TakeMeasurement() {
 }
 
 void retract() {
-  while (encoderPosition < 3000) {
+  while ( myEnc.read() - state.encoderZeroPosition > -35000) {
     pwm_value = 10; //  power to motor.
     digitalWrite(motordir, HIGH); // motor direction = up
   }
