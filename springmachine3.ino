@@ -209,7 +209,7 @@ void GoAboveSpring() {
     digitalWrite(motordir, LOW); // motor direction = down
   }
   // just keep looping and doing nothing until the position is correct
-  while (myEnc.read() > -25000) {
+  while (myEnc.read() > -35000) {
     lcd.setCursor(0, 1);
     lcd.print(myEnc.read());
     continue;
@@ -247,12 +247,8 @@ void PreLoad() {
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, LOW); // motor direction = down
 
-    //display encoder reading
-    lcd.setCursor(0, 1);
-    lcd.print(myEnc.read());
-
     // display loadcell reading
-    lcd.setCursor(0, 1);
+    lcd.setCursor(0, 0);
     lcd.print(scale.get_units());
   }
 
@@ -263,7 +259,7 @@ void PreLoad() {
 
   myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
   scale.tare();          //Reset the scale to 0  // zeros the load cell
-
+delay(
 
 
 }
@@ -271,8 +267,11 @@ void PreLoad() {
 void TakeMeasurement() {
   uint8_t i;
   float avgMeasurement;
-  while ( myEnc.read() > -6242 ) {
-    pwm_value = 25; //  power to motor.
+  while ( myEnc.read() > -7282 ) {
+
+    lcd.setCursor(0, 0);
+    lcd.print(scale.get_units());
+    pwm_value = 20; //  power to motor.
     digitalWrite(motordir, LOW); // motor direction = down
     analogWrite(motorpwm, pwm_value);
   }
@@ -290,7 +289,7 @@ void TakeMeasurement() {
 
   //actually calculate the spring constant
   //increments so that it repeats five times
-  state.measurements[state.currentMeasurement] = scale.get_units() / .3;
+  state.measurements[state.currentMeasurement] = scale.get_units() / .35;
   state.currentMeasurement++;
 
   
