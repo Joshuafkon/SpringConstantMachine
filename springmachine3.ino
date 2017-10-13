@@ -115,29 +115,21 @@ void loop() {
     case kStateGoHome:
       lcd.setCursor(0, 1);
       lcd.print ("GO HOME");
-      lcd.clear();
       GoHome();
       state.current = kStateIdle;
       break;
     case kStateIdle:
       lcd.setCursor(0, 1);
-      lcd.print ("IDLE");
+      lcd.print ("IDLE       ");
       // wait for button press
       if (digitalRead(buttonPin) == HIGH) {
         GoAboveSpring();
         state.current = kStateDetectSpring;
       }
       break;
-    case kStateRetract: // Retract partially (just above where we detected the spring the first time)
-      lcd.setCursor(0, 1);
-        lcd.clear();
-      lcd.print ("RETRACT");
-      retract();
-      state.current = kStateDetectSpring;
-      break;
     case kGoAboveSpring: // move quickly to just above spring
       lcd.setCursor(0, 1);
-        lcd.clear();
+      lcd.clear();
       lcd.print ("ABOVE SPRING");
       GoAboveSpring();
       state.current = kStateDetectSpring;
@@ -147,7 +139,7 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print(scale.get_units());
       lcd.setCursor(0, 1);
-      lcd.print ("DETECT");
+      lcd.print ("DETECT     ");
       pwm_value = 25; // motor speed - slow speed
       digitalWrite(motordir, LOW); // motor direction - down
       if (scale.get_units() > 0) {
@@ -158,7 +150,7 @@ void loop() {
     case kStatePreLoad:
       lcd.clear();
       lcd.setCursor(0, 1);
-      lcd.print ("PRELOAD");
+      lcd.print ("PRELOAD     ");
       // Move down a little bit (0.05'') and zero the load cell and the encoder position
       PreLoad();
       state.current = kStateTakeMeasurement;
@@ -166,8 +158,16 @@ void loop() {
     case kStateTakeMeasurement:
       lcd.clear();
       lcd.setCursor(0, 1);
-      lcd.print ("MEASUREMENT");
+      lcd.print ("MEASUREMENT   ");
       TakeMeasurement();
+      break;
+    case kStateRetract: // Retract partially (just above where we detected the spring the first time)
+      lcd.setCursor(0, 1);
+      lcd.clear();
+      lcd.print ("RETRACT   ");
+      retract();
+      delay(2000);
+      state.current = kStateDetectSpring;
       break;
   }
 }
@@ -202,7 +202,7 @@ void GoAboveSpring() {
     digitalWrite(motordir, LOW); // motor direction = down
   }
   // just keep looping and doing nothing until the position is correct
-  while (myEnc.read()- state.encoderZeroPosition > -25000) {
+  while (myEnc.read() - state.encoderZeroPosition > -25000) {
     lcd.setCursor(0, 1);
     lcd.print(myEnc.read() - state.encoderZeroPosition);
     continue;
@@ -212,7 +212,7 @@ void GoAboveSpring() {
   analogWrite(motorpwm, pwm_value);
 }
 
-  
+
 
 
 void PreLoad() {
@@ -220,7 +220,7 @@ void PreLoad() {
     pwm_value = 25; //  power to motor.
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, LOW); // motor direction = down
-    
+
     lcd.setCursor(0, 1);
     lcd.print(scale.get_units());
     lcd.setCursor(15, 0);
@@ -230,15 +230,16 @@ void PreLoad() {
   scale.tare();          //Reset the scale to 0  // zeros the load cell
 
 
-  
+
 }
 
 void TakeMeasurement() {
   uint8_t i;
   float avgMeasurement;
-  while ( myEnc.read() - state.encoderTarePosition> -6242 ) {
-    pwm_value = 0; //  power to motor.
+  while ( myEnc.read() - state.encoderTarePosition > -6242 ) {
+    pwm_value = 25; //  power to motor.
     digitalWrite(motordir, LOW); // motor direction = down
+    analogWrite(motorpwm, pwm_value);
   }
   //actually calculate the spring constant
   //increments so that it repeats five times
@@ -265,7 +266,15 @@ void TakeMeasurement() {
 
 void retract() {
   while ( myEnc.read() - state.encoderZeroPosition > -25000) {
-    pwm_value = 10; //  power to motor.
+    pwm_value = 25; //  power to motor.
+    analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, HIGH); // motor direction = up
+    lcd.setCursor(15, 0);
+    lcd.print(myEnc.read() - state.encoderZeroPosition);
   }
+
+  pwm_value = 0;
+  analogWrite(motorpwm, pwm_value);
+
 }
+
