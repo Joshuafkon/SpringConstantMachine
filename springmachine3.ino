@@ -9,6 +9,7 @@ void GoAboveSpring(); // declares function GoAboveSpring
 void PreLoad(); // declares function PreLoad
 void TakeMeasurement(); // declares function TakeMeasurement
 void retract();//declares function retract
+void detect();//declares function detect
 
 // set pins (both with interupt capability) for the outputs of the encoder
 Encoder myEnc(18, 19);
@@ -141,21 +142,18 @@ void loop() {
       state.current = kStateDetectSpring;
       break;
     case kStateDetectSpring:
+      myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print(scale.get_units());
       lcd.setCursor(0, 1);
       lcd.print(myEnc.read());
-      lcd.setCursor(0, 0);
+      lcd.setCursor(10, 0);
       lcd.print ("DETECT     ");
-      pwm_value = 25; // motor speed - slow speed
-      digitalWrite(motordir, LOW); // motor direction - down
-      if (scale.get_units() > 0) {
-        state.encoderSpringPosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
-        state.current = kStatePreLoad;
-      }
+      detect();
       break;
     case kStatePreLoad:
+      myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
       lcd.clear();
       lcd.setCursor(0, 1);
       lcd.print(myEnc.read());
@@ -166,6 +164,7 @@ void loop() {
       state.current = kStateTakeMeasurement;
       break;
     case kStateTakeMeasurement:
+      myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
       lcd.setCursor(0, 1);
       lcd.print(myEnc.read());
       lcd.setCursor(0, 0);
@@ -173,6 +172,7 @@ void loop() {
       TakeMeasurement();
       break;
     case kStateRetract: // Retract partially (just above where we detected the spring the first time)
+      myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
       lcd.setCursor(0, 1);
       lcd.print(myEnc.read());
       lcd.setCursor(0, 0);
@@ -225,10 +225,19 @@ void GoAboveSpring() {
 }
 
 
-
+void detect() {
+  pwm_value = 25; // motor speed - slow speed
+  analogWrite(motorpwm, pwm_value);
+  digitalWrite(motordir, LOW); // motor direction - down
+  if (scale.get_units() > 0) {
+    pwm_value = 0; // motor speed - slow speed
+    analogWrite(motorpwm, pwm_value);
+    digitalWrite(motordir, LOW); // motor direction - down
+    state.current = kStatePreLoad;
+  }
+}
 
 void PreLoad() {
-  myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
   while (myEnc.read() > -1040) {
     pwm_value = 25; //  power to motor.
     analogWrite(motorpwm, pwm_value);
@@ -249,7 +258,6 @@ void PreLoad() {
 void TakeMeasurement() {
   uint8_t i;
   float avgMeasurement;
-  myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
   while ( myEnc.read() > -6242 ) {
     pwm_value = 25; //  power to motor.
     digitalWrite(motordir, LOW); // motor direction = down
@@ -279,7 +287,7 @@ void TakeMeasurement() {
 }
 
 void retract() {
-  while ( myEnc.read() > -10000) {
+  while ( myEnc.read() < 10000) {
     pwm_value = 25; //  power to motor.
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, HIGH); // motor direction = up
