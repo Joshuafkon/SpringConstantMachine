@@ -79,10 +79,12 @@ int lastButtonState = 0; // previous state of the button
 
 int measurementCounter = 0;
 
+float repeatability;
+int setSpringCount = 0;
+
 int pwm_value;
 long encoderPosition = myEnc.read(); // reads the number of pules seen by the encoder. 6533 = 1 rev = 8mm
 
-int setSpringCount;
 
 
 void setup() {
@@ -119,6 +121,8 @@ void loop() {
 
   uint8_t i;
   float avgMeasurement;
+  float repeatability;
+
   switch (state.current) {
 
     case kStateGoHome:
@@ -293,7 +297,7 @@ void detect() {
 void SetSpring() {
 
   //Increments a variable so that I can tell if this function has been called before for this spring.
-  setSpringCount ++;
+  setSpringCount = 1;
 
   //Same as the preLoad function, but moves down further.
   while (myEnc.read() > -6000 && scale.get_units() < 8) {
@@ -330,7 +334,7 @@ void PreLoad() {
     lcd.setCursor(0, 0);
     lcd.print(scale.get_units());
   }
-  
+
   // turn off motor when preload is finished
   pwm_value = 0; //  power to motor.
   analogWrite(motorpwm, pwm_value);
@@ -417,6 +421,10 @@ void TakeMeasurement() {
 
     //delay long enough to read the value
     delay(10000);
+
+    //calculate repeatability
+
+    repeatability = sqrt((sq(state.measurements[0] - avgMeasurement) + sq(state.measurements[1] - avgMeasurement) + sq(state.measurements[2] - avgMeasurement)  + sq(state.measurements[3] - avgMeasurement)  + sq(state.measurements[4] - avgMeasurement)) / 5);
 
 
     state.current = kStateGoHome;
