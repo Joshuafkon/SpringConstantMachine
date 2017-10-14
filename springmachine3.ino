@@ -425,7 +425,17 @@ void TakeMeasurement() {
     //calculate repeatability
 
     repeatability = sqrt((sq(state.measurements[0] - avgMeasurement) + sq(state.measurements[1] - avgMeasurement) + sq(state.measurements[2] - avgMeasurement)  + sq(state.measurements[3] - avgMeasurement)  + sq(state.measurements[4] - avgMeasurement)) / 5);
+    
+    //Print Repeatability
+    lcd.setCursor(0, 0);
+    lcd.print("Repeatability: ");
+    lcd.setCursor(0, 1);
+    lcd.print(repeatability);
+    lcd.setCursor(9, 1);
+    lcd.print(" lbs/in"); // units for spring constant
 
+    //delay long enough to read the value
+    delay(10000);
 
     state.current = kStateGoHome;
   } else {
