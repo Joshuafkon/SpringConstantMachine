@@ -165,9 +165,10 @@ void loop() {
       lcd.setCursor(8, 0);
       lcd.print ("MEASUREMENT   ");
       TakeMeasurement();
+      myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
+
       break;
     case kStateRetract: // Retract partially (just above where we detected the spring the first time)
-      myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
       lcd.setCursor(0, 1);
       lcd.print(myEnc.read());
       lcd.setCursor(8, 0);
@@ -204,9 +205,14 @@ void GoHome() {
 
 void GoAboveSpring() {
   if (myEnc.read() > -35000) {
+
+
     pwm_value = 200; //  power to motor.
     analogWrite(motorpwm, pwm_value);
-    digitalWrite(motordir, LOW); // motor direction = down
+    digitalWrite(motordir, LOW); // motor direction = up
+
+
+
   }
   // just keep looping and doing nothing until the position is correct
   while (myEnc.read() > -35000) {
@@ -252,14 +258,14 @@ void PreLoad() {
     lcd.print(scale.get_units());
   }
 
-// turn off motor when preload is finished
-    pwm_value = 0; //  power to motor.
-    analogWrite(motorpwm, pwm_value);
-    digitalWrite(motordir, LOW); // motor direction = down
+  // turn off motor when preload is finished
+  pwm_value = 0; //  power to motor.
+  analogWrite(motorpwm, pwm_value);
+  digitalWrite(motordir, LOW); // motor direction = down
 
   myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
   scale.tare();          //Reset the scale to 0  // zeros the load cell
-delay(
+  delay(1000);
 
 
 }
@@ -275,13 +281,13 @@ void TakeMeasurement() {
     digitalWrite(motordir, LOW); // motor direction = down
     analogWrite(motorpwm, pwm_value);
   }
-    
-    //Print single spring constant
-    lcd.setCursor(8, 0);
-    lcd.print("Ave Spring Constant: ");
+
+  //Print single spring constant
+  lcd.setCursor(8, 0);
+  lcd.print("Ave Spring Constant: ");
 
 
-    
+
   // turns off the motor after it's moved down that far
   pwm_value = 0; //  power to motor.
   digitalWrite(motordir, LOW); // motor direction = down
@@ -289,10 +295,10 @@ void TakeMeasurement() {
 
   //actually calculate the spring constant
   //increments so that it repeats five times
-  state.measurements[state.currentMeasurement] = scale.get_units() / .35;
+  state.measurements[state.currentMeasurement] = scale.get_units() / .349980;
   state.currentMeasurement++;
 
-  
+
 
   // After five cycles it displays the measurements
   if (state.currentMeasurement == NUM_MEASUREMENTS) {
@@ -327,10 +333,19 @@ void TakeMeasurement() {
 }
 
 void retract() {
+  lcd.setCursor(0, 1);
+  lcd.print(myEnc.read());
   while ( myEnc.read() < 15000) {
-    pwm_value = 150; //  power to motor.
-    analogWrite(motorpwm, pwm_value);
-    digitalWrite(motordir, HIGH); // motor direction = up
+    endstopstate = digitalRead(endstopPin); // read the value
+    if (endstopstate != HIGH) {
+      pwm_value = 150; //  power to motor.
+      analogWrite(motorpwm, pwm_value);
+      digitalWrite(motordir, HIGH); // motor direction = up
+    }
+    while (endstopstate != HIGH) {
+      endstopstate = digitalRead(endstopPin); // read the value
+    }
+
 
   }
 
