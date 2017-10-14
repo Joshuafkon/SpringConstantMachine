@@ -10,6 +10,7 @@ void PreLoad(); // declares function PreLoad
 void TakeMeasurement(); // declares function TakeMeasurement
 void retract();//declares function retract
 void detect();//declares function detect
+void SetSpring();//declares function SetSpring
 
 
 // set pins (both with interupt capability) for the outputs of the encoder
@@ -38,6 +39,7 @@ enum {
   kStateTakeMeasurement,
   kStateIdle,
   kGoAboveSpring,
+  kStateSetSpring,
 };
 
 #define NUM_MEASUREMENTS 5
@@ -340,10 +342,10 @@ void TakeMeasurement() {
 
 
   //while the econder hasn't moved down 0.35'' AND (as a saftey measure) the loadcell does not see more than 8 lbs
-  while ( myEnc.read() > -7282  && scale.get_units() < 8 {
+  while ( myEnc.read() > -7282  && scale.get_units() < 8 ) {
 
-  //display the reading of the loadcell
-  lcd.setCursor(0, 0);
+    //display the reading of the loadcell
+    lcd.setCursor(0, 0);
     lcd.print(scale.get_units());
 
     //Set the motor to a low power
@@ -365,7 +367,7 @@ void TakeMeasurement() {
   lcd.setCursor(0, 0);
   lcd.print("Spring Constant: ");
   lcd.setCursor(0, 1);
-  lcd.print(state.measurements[state.currentMeasurement] = scale.get_units() / .349980;);
+  lcd.print(state.measurements[state.currentMeasurement] = scale.get_units() / .349980);
   lcd.setCursor(9, 1);
   lcd.print(" lbs/in"); // units for spring constant
 
@@ -382,8 +384,8 @@ void TakeMeasurement() {
   if (state.currentMeasurement == NUM_MEASUREMENTS) {
 
 
-  // now stop, average measurements, & display result
-  for (i = 0, avgMeasurement = 0.0f; i < NUM_MEASUREMENTS; i++) {
+    // now stop, average measurements, & display result
+    for (i = 0, avgMeasurement = 0.0f; i < NUM_MEASUREMENTS; i++) {
       avgMeasurement += state.measurements[i];
     }
 
@@ -412,7 +414,7 @@ void TakeMeasurement() {
     state.current = kStateRetract;
   }
 }
-}
+
 
 // RETRACTS THE MOTOR TO JUST ABOVE WHERE THE SPRING COULD BE TO START TAKING ANOTHER MEASURMENT
 void retract() {
