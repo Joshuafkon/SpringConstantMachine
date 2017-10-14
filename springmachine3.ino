@@ -161,6 +161,15 @@ void loop() {
       detect();
       break;
 
+    case kStateSetSpring:
+      myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
+      lcd.clear();
+      lcd.setCursor(8, 0);
+      lcd.print ("SET SPRING     ");
+      // Move down a little bit (0.05'') and zero the load cell and the encoder position
+      SetSpring();
+      break;
+
     case kStatePreLoad:
       myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
       lcd.clear();
@@ -287,7 +296,7 @@ void SetSpring() {
   setSpringCount ++;
 
   //Same as the preLoad function, but moves down further.
-  while (myEnc.read() > -6000) {
+  while (myEnc.read() > -6000 && scale.get_units() < 8) {
     pwm_value = 25; //  power to motor.
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, LOW); // motor direction = down
@@ -320,18 +329,19 @@ void PreLoad() {
     // display loadcell reading
     lcd.setCursor(0, 0);
     lcd.print(scale.get_units());
-
-    // turn off motor when preload is finished
-    pwm_value = 0; //  power to motor.
-    analogWrite(motorpwm, pwm_value);
-    digitalWrite(motordir, LOW); // motor direction = down
-
-    //Zeros the encoder and the loadcell
-    myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
-    scale.tare();          //Reset the scale to 0  // zeros the load cell
-    delay(1000);
   }
+  
+  // turn off motor when preload is finished
+  pwm_value = 0; //  power to motor.
+  analogWrite(motorpwm, pwm_value);
+  digitalWrite(motordir, LOW); // motor direction = down
+
+  //Zeros the encoder and the loadcell
+  myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
+  scale.tare();          //Reset the scale to 0  // zeros the load cell
+  delay(1000);
 }
+
 
 //THE IMPORTANT FUNCTION THAT CALUCLATIONS AND PRINTS THE SPRING CONSTANT!
 void TakeMeasurement() {
