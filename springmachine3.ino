@@ -231,6 +231,7 @@ void GoHome() {
 
   // now we know that the motor is in the starting position - Turn off power to the motor and zero the encoder position.
   myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
+  scale.tare();
   pwm_value = 0; // no power to motor.
   analogWrite(motorpwm, pwm_value);
 }
