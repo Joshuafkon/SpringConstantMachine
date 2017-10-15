@@ -463,6 +463,7 @@ void retract() {
     pwm_value = 150; //  power to motor.
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, HIGH); // motor direction = up
+    endstopstate = digitalRead(endstopPin);
   }
 
   // Turn off the motor
