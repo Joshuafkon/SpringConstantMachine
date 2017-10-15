@@ -391,7 +391,7 @@ void TakeMeasurement() {
   analogWrite(motorpwm, pwm_value);
 
   //CALCULATES AND STORES SPRING CONSTANT
-  state.measurements[state.currentMeasurement] = scale.get_units() / .349980;
+  state.measurements[state.currentMeasurement] = (float)scale.get_units() / .349980;
 
   //prints single spring constant
   lcd.setCursor(0, 0);
