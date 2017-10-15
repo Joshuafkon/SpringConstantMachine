@@ -126,7 +126,7 @@ void loop() {
 
     case kStateGoHome:
 
-      Setup();
+      setup();
       lcd.setCursor(0, 1);
       lcd.print(myEnc.read());
       lcd.setCursor(0, 0);
@@ -355,6 +355,8 @@ void PreLoad() {
 //THE IMPORTANT FUNCTION THAT CALUCLATIONS AND PRINTS THE SPRING CONSTANT!
 void TakeMeasurement() {
 
+  myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
+
   //variables for the measurement
   uint8_t i;    //used to increment the number of measurements taken
   float avgMeasurement;  // used to store the average of the five measurements
@@ -400,7 +402,7 @@ void TakeMeasurement() {
 
 
   // After five cycles it displays the average measurement
-  if (state.currentMeasurement == NUM_MEASUREMENTS - 1) {
+  if (state.currentMeasurement == NUM_MEASUREMENTS) {
 
 
 
