@@ -348,10 +348,12 @@ void PreLoad() {
   analogWrite(motorpwm, pwm_value);
   digitalWrite(motordir, LOW); // motor direction = down
 
+  delay(1500);
+
   //Zeros the encoder and the loadcell
   myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
   scale.tare();          //Reset the scale to 0  // zeros the load cell
-  delay(300);
+
 }
 
 
@@ -371,6 +373,10 @@ void TakeMeasurement() {
     //display the reading of the loadcell
     lcd.setCursor(0, 0);
     lcd.print(scale.get_units());
+
+    //display encoder reading
+    lcd.setCursor(0, 1);
+    lcd.print(myEnc.read());
 
     //Set the motor to a low power
     pwm_value = 20; //  power to motor.
@@ -425,7 +431,7 @@ void TakeMeasurement() {
 
     //Print Spring Calculation value
     lcd.setCursor(0, 0);
-    lcd.print("Ave Spring Constant: ");
+    lcd.print("Avg Spring Constant: ");
     lcd.setCursor(0, 1);
     lcd.print(avgMeasurement);
     lcd.setCursor(9, 1);
