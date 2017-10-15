@@ -45,9 +45,6 @@ enum {
 #define NUM_MEASUREMENTS 5
 
 struct {
-  long encoderZeroPosition;
-  long encoderSpringPosition;
-  long encoderTarePosition;
   uint8_t current;
   float measurements[NUM_MEASUREMENTS];
   uint8_t currentMeasurement;
@@ -72,12 +69,8 @@ const int buttonPin = 7; // the number of the pushbutton pin
 
 int endstopstate = 0; //variable for the endstop
 const int endstopPin = 11; // the end stop pin (HIGH when pressed)
-int buttonPressed = 0;
-int buttonPushCounter = 0; // counter for the number of button presses
-int buttonState = 0; // current state of the button
-int lastButtonState = 0; // previous state of the button
 
-int measurementCounter = 0;
+
 
 float repeatability;
 int setSpringCount = 0;
@@ -88,6 +81,11 @@ long encoderPosition = myEnc.read(); // reads the number of pules seen by the en
 
 
 void setup() {
+
+  //apparently there are only two global variable to clear. Neither of which should effect the encoder reading....
+  int setSpringCount = 0;
+  int endstopstate = 0; //variable for the endstop
+
   state.current = kStateGoHome;
   state.currentMeasurement = 0;
 
@@ -127,6 +125,8 @@ void loop() {
   switch (state.current) {
 
     case kStateGoHome:
+
+      Setup();
       lcd.setCursor(0, 1);
       lcd.print(myEnc.read());
       lcd.setCursor(0, 0);
@@ -403,6 +403,8 @@ void TakeMeasurement() {
   if (state.currentMeasurement == NUM_MEASUREMENTS - 1) {
 
 
+
+
     // now stop, average measurements, & display result
     for (i = 0, avgMeasurement = 0.0f; i < NUM_MEASUREMENTS; i++) {
       avgMeasurement += state.measurements[i];
@@ -430,7 +432,7 @@ void TakeMeasurement() {
     //calculate repeatability
 
     repeatability = sqrt((sq(state.measurements[0] - avgMeasurement) + sq(state.measurements[1] - avgMeasurement) + sq(state.measurements[2] - avgMeasurement)  + sq(state.measurements[3] - avgMeasurement)  + sq(state.measurements[4] - avgMeasurement)) / 5);
-    
+
     //Print Repeatability
     lcd.setCursor(0, 0);
     lcd.print("Repeatability: ");
@@ -451,6 +453,9 @@ void TakeMeasurement() {
 
 // RETRACTS THE MOTOR TO JUST ABOVE WHERE THE SPRING COULD BE TO START TAKING ANOTHER MEASURMENT
 void retract() {
+
+  //clears the value of the encoder - for saftey
+  myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
 
   //prints the encoder value for testing
   lcd.setCursor(0, 1);
