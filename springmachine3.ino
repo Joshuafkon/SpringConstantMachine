@@ -89,6 +89,7 @@ long encoderPosition = myEnc.read(); // reads the number of pules seen by the en
 
 void setup() {
   state.current = kStateGoHome;
+  state.currentMeasurement = 0;
 
   // LCD SETUP
   // set up the LCD's number of columns and rows:
@@ -172,6 +173,8 @@ void loop() {
       lcd.print ("SET SPRING     ");
       // Move down a little bit (0.05'') and zero the load cell and the encoder position
       SetSpring();
+      myEnc.write(0);
+      state.current = kStateRetract;
       break;
 
     case kStatePreLoad:
@@ -198,7 +201,8 @@ void loop() {
       lcd.setCursor(0, 1);
       lcd.print(myEnc.read());
       lcd.setCursor(8, 0);
-      lcd.print("Reteact");
+      lcd.print("Retract");
+      myEnc.write(0);
       retract();
       delay(1000);
       state.current = kStateDetectSpring;
@@ -239,7 +243,7 @@ void GoAboveSpring() {
   if (myEnc.read() > -35000) {   // If the encoder position hasn't moved down to the position just above the spring
     pwm_value = 200; //  power to motor.
     analogWrite(motorpwm, pwm_value);
-    digitalWrite(motordir, LOW); // motor direction = up
+    digitalWrite(motordir, LOW); // motor direction = down
   }
 
   // just keep looping and doing nothing until the position is correct
@@ -282,7 +286,7 @@ void detect() {
     //If the spring set function hasn't been run before for this spring, set the state to "kStateSetSpring" if it has been run before
     //go to the standard kStatePreLoad. *The first measurement for each spring seems to be a little more innacurate. so I'm setting spring with
     //more force and then retracting.
-    if (setSpringCount > 0) {
+    if (setSpringCount == 0) {
       state.current = kStateSetSpring;
     }
     else
@@ -325,7 +329,7 @@ void SetSpring() {
 void PreLoad() {
 
   //Moves the motor down slightly (0.05'')
-  while (myEnc.read() > -1040) {
+  while (myEnc.read() > -1040 && scale.get_units() < 8) {
     pwm_value = 25; //  power to motor.
     analogWrite(motorpwm, pwm_value);
     digitalWrite(motordir, LOW); // motor direction = down
@@ -343,7 +347,7 @@ void PreLoad() {
   //Zeros the encoder and the loadcell
   myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
   scale.tare();          //Reset the scale to 0  // zeros the load cell
-  delay(1000);
+  delay(300);
 }
 
 
@@ -381,7 +385,7 @@ void TakeMeasurement() {
   lcd.setCursor(0, 0);
   lcd.print("Spring Constant: ");
   lcd.setCursor(0, 1);
-  lcd.print(state.measurements[state.currentMeasurement] = scale.get_units() / .349980);
+  lcd.print(state.measurements[state.currentMeasurement]);
   lcd.setCursor(9, 1);
   lcd.print(" lbs/in"); // units for spring constant
 
@@ -395,7 +399,7 @@ void TakeMeasurement() {
 
 
   // After five cycles it displays the average measurement
-  if (state.currentMeasurement == NUM_MEASUREMENTS) {
+  if (state.currentMeasurement == NUM_MEASUREMENTS - 1) {
 
 
     // now stop, average measurements, & display result
