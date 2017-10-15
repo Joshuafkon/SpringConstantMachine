@@ -229,11 +229,14 @@ void GoHome() {
     endstopstate = digitalRead(endstopPin); // read the value
   }
 
+  //ADDING ANY CODE BETWEEN READING THE ENDSTOP AND THE MOTOER SHUTOFF CAN CAUSE A CRASH!!!
+  pwm_value = 0; // no power to motor.
+  analogWrite(motorpwm, pwm_value);
+
   // now we know that the motor is in the starting position - Turn off power to the motor and zero the encoder position.
   myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
   scale.tare();
-  pwm_value = 0; // no power to motor.
-  analogWrite(motorpwm, pwm_value);
+
 }
 
 
