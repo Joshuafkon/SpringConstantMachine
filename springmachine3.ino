@@ -29,7 +29,9 @@ Encoder myEnc(18, 19);
 
 // Set the calibration factor for the load cell it its current setup
 HX711 scale(DOUT, CLK);
-float calibration_factor = -215000; //appears to be well calibrated
+
+float calibration_factor = -169000; //appears to be well calibrated
+//float calibration_factor = -215000; //appears to be well calibrated
 
 enum {
   kStateGoHome,
@@ -127,9 +129,7 @@ void loop() {
     case kStateGoHome:
 
       setup();
-      lcd.setCursor(0, 1);
-      lcd.print(myEnc.read());
-      lcd.setCursor(0, 0);
+      lcd.setCursor(4, 0);
       lcd.print ("GO HOME");
       GoHome();
       state.current = kStateIdle;
@@ -137,22 +137,33 @@ void loop() {
 
     case kStateIdle:
       myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
-      lcd.setCursor(0, 1);
-      lcd.print(myEnc.read());
+
+      //Print State
       lcd.setCursor(0, 0);
-      lcd.print ("IDLE       ");
+      lcd.print ("Press Button To");
+
+      //Print
+      lcd.setCursor(0, 1);
+      lcd.print ("   Start Test");
+
       // wait for button press
       if (digitalRead(buttonPin) == HIGH) {
+        lcd.clear();
         GoAboveSpring();
         state.current = kStateDetectSpring;
+        
       }
+
+
+
+
       break;
 
     case kGoAboveSpring: // move quickly to just above spring
-      lcd.setCursor(0, 1);
-      lcd.print(myEnc.read());
-      lcd.setCursor(0, 0);
-      lcd.print ("ABOVE SPRING");
+
+      lcd.clear();
+
+
       GoAboveSpring();
       state.current = kStateDetectSpring;
       break;
@@ -161,7 +172,7 @@ void loop() {
       scale.tare();           //Reset the scale to 0  // zeros the load cell
       myEnc.write(0);         // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
       lcd.clear();
-      lcd.setCursor(8, 0);
+      lcd.setCursor(6, 0);
       lcd.print ("DETECT     ");
       detect();
       break;
@@ -169,7 +180,7 @@ void loop() {
     case kStateSetSpring:
       myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
       lcd.clear();
-      lcd.setCursor(8, 0);
+      lcd.setCursor(3, 1);
       lcd.print ("SET SPRING     ");
       // Move down a little bit (0.05'') and zero the load cell and the encoder position
       SetSpring();
@@ -180,7 +191,7 @@ void loop() {
     case kStatePreLoad:
       myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
       lcd.clear();
-      lcd.setCursor(8, 0);
+      lcd.setCursor(6, 0);
       lcd.print ("PRELOAD     ");
       // Move down a little bit (0.05'') and zero the load cell and the encoder position
       PreLoad();
@@ -189,18 +200,16 @@ void loop() {
 
     case kStateTakeMeasurement:
       myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
-      lcd.setCursor(0, 1);
-      lcd.print(myEnc.read());
-      lcd.setCursor(8, 0);
+      lcd.clear();
+      lcd.setCursor(5, 0);
       lcd.print ("MEASUREMENT   ");
       TakeMeasurement();
       myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
 
       break;
     case kStateRetract: // Retract partially (just above where we detected the spring the first time)
-      lcd.setCursor(0, 1);
-      lcd.print(myEnc.read());
-      lcd.setCursor(8, 0);
+      lcd.clear();
+      lcd.setCursor(4, 0);
       lcd.print("Retract");
       myEnc.write(0);
       retract();
@@ -251,10 +260,21 @@ void GoAboveSpring() {
   }
 
   // just keep looping and doing nothing until the position is correct
-  while (myEnc.read() > -35000) {
+  while (myEnc.read() > -30000) {
+
+    // Print Move to Position
+    lcd.setCursor(0, 0);
+    lcd.print ("Move to position");
+
     lcd.setCursor(0, 1);
     lcd.print(myEnc.read());
+
+    lcd.setCursor(7, 1);
+    lcd.print("Encoder");
     continue;  // continues to check the position of the encoder
+
+    
+
   }
 
 
@@ -275,10 +295,6 @@ void detect() {
   //display loadcell reading
   lcd.setCursor(0, 0);
   lcd.print(scale.get_units());
-
-  //display encoder reading
-  lcd.setCursor(0, 1);
-  lcd.print(myEnc.read());
 
 
   //If the Load cell senses more than 0.01 lbs-force - turn off the motor.
@@ -316,6 +332,9 @@ void SetSpring() {
     // display loadcell reading
     lcd.setCursor(0, 0);
     lcd.print(scale.get_units());
+
+    lcd.setCursor(6, 0);
+    lcd.print("lbs");
   }
 
 
@@ -445,6 +464,7 @@ void TakeMeasurement() {
     repeatability = sqrt((sq(state.measurements[0] - avgMeasurement) + sq(state.measurements[1] - avgMeasurement) + sq(state.measurements[2] - avgMeasurement)  + sq(state.measurements[3] - avgMeasurement)  + sq(state.measurements[4] - avgMeasurement)) / 5);
 
     //Print Repeatability
+    lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Repeatability: ");
     lcd.setCursor(0, 1);
@@ -468,9 +488,7 @@ void retract() {
   //clears the value of the encoder - for saftey
   myEnc.write(0); // zeros the number of pules seen by the encoder. 6533 = 1 rev = 8mm
 
-  //prints the encoder value for testing
-  lcd.setCursor(0, 1);
-  lcd.print(myEnc.read());
+  
 
   //Check the value of the endstop switch
   endstopstate = digitalRead(endstopPin); // read the value
